@@ -34,10 +34,10 @@ const BILLS_CATS = ["ค่าบ้าน","ค่ารถ","ค่าเน�
 const SPECIAL_CATS = ["ให้เงินแม่","เที่ยว","ไหว้พระ","อื่น ๆ"] as const;
 const INVEST_CATS = ["โอนเงินไปเทรดหุ้น","ออมทอง","ซื้อหุ้น"] as const;
 
-const sum = (a: Array<number | string>) => a.reduce((x,y)=>x+Number(y||0),0);
+const sum = (a: Array<number | string>): number => a.reduce((acc: number, curr: number | string) => acc + Number(curr || 0), 0);
 
 export default function App(){
-  const [theme,setTheme] = useState<'dark'|'light'>(() => (localStorage.getItem('mee_theme') as any)||'dark');
+  const [theme,setTheme] = useState<'dark'|'light'>(() => (localStorage.getItem('mee_theme') as 'dark'|'light')||'dark');
   useEffect(()=>localStorage.setItem('mee_theme', theme),[theme]);
   const isDark = theme==='dark';
   const baseBg = isDark ? 'text-slate-100' : 'text-slate-900';
@@ -157,21 +157,21 @@ function BudgetMiniApp(){
   useEffect(()=>localStorage.setItem('budget_start', String(startBalance)),[startBalance]);
   useEffect(()=>localStorage.setItem('budget_addOpen', addOpen?'1':'0'),[addOpen]);
 
-  const incomeActual = sum(transactions.filter(t => t.type==='income' && t.status!=='forecast').map(t => t.amount));
-  const expenseActual = sum(transactions.filter(t => t.type!=='income' && t.status!=='forecast').map(t => t.amount));
-  const incomeForecast = sum(transactions.filter(t => t.type==='income' && t.status==='forecast').map(t=>t.amount));
-  const expenseForecast = sum(transactions.filter(t => (t.type==='expense' || t.type==='invest') && t.status==='forecast').map(t=>t.amount));
-  const investedActual = sum(transactions.filter(t => t.status!=='forecast' && (t.type==='invest' || (t.type==='expense' && (INVEST_CATS_ARR as readonly string[]).includes(t.category)))).map(t=>t.amount));
+  const incomeActual = Number(sum(transactions.filter(t => t.type==='income' && t.status!=='forecast').map(t => t.amount)));
+  const expenseActual = Number(sum(transactions.filter(t => t.type!=='income' && t.status!=='forecast').map(t => t.amount)));
+  const incomeForecast = Number(sum(transactions.filter(t => t.type==='income' && t.status==='forecast').map(t=>t.amount)));
+  const expenseForecast = Number(sum(transactions.filter(t => (t.type==='expense' || t.type==='invest') && t.status==='forecast').map(t=>t.amount)));
+  const investedActual = Number(sum(transactions.filter(t => t.status!=='forecast' && (t.type==='invest' || (t.type==='expense' && (INVEST_CATS_ARR as readonly string[]).includes(t.category)))).map(t=>t.amount)));
 
-  const segCash = Math.max(0, startBalance + incomeActual - expenseActual);
-  const segInvest = Math.max(0, investedActual);
-  const segIncF = Math.max(0, incomeForecast);
-  const segExpF = Math.max(0, expenseForecast);
+  const segCash = Math.max(0, startBalance + Number(incomeActual) - Number(expenseActual));
+  const segInvest = Math.max(0, Number(investedActual));
+  const segIncF = Math.max(0, Number(incomeForecast));
+  const segExpF = Math.max(0, Number(expenseForecast));
   const wheelData = [{name:'เงินคงเหลือ', value: segCash, color:'#22c55e'},{name:'เงินลงทุน', value: segInvest, color:'#0ea5e9'},{name:'คาดการณ์รายรับ', value: segIncF, color:'#a78bfa'},{name:'คาดการณ์รายจ่าย', value: segExpF, color:'#f43f5e'}].filter(s=>s.value>0);
 
-  const balanceActual = startBalance + incomeActual - expenseActual;
-  const netForecast = incomeForecast - expenseForecast;
-  const combinedWithInvest = balanceActual + investedActual + netForecast;
+  const balanceActual = startBalance + Number(incomeActual) - Number(expenseActual);
+  const netForecast = Number(incomeForecast) - Number(expenseForecast);
+  const combinedWithInvest = balanceActual + Number(investedActual) + netForecast;
 
   const [form, setForm] = useState<{date:string;type:TxType;status:TxStatus;category:string;amount:number;note?:string}>({
     date: todayISO(), type: "expense", status: 'actual', category: "ค่ากิน", amount: 0, note: ""
